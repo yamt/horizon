@@ -28,7 +28,9 @@ from openstack_dashboard import api
 LOG = logging.getLogger(__name__)
 PROVIDER_TYPES = [('local', _('Local')), ('flat', _('Flat')),
                   ('vlan', _('VLAN')), ('gre', _('GRE')),
-                  ('vxlan', _('VXLAN'))]
+                  ('vxlan', _('VXLAN')),
+                  ('midonet', _('MidoNet')),
+                  ('uplink', _('MidoNet Uplink'))]
 SEGMENTATION_ID_RANGE = {'vlan': [1, 4094], 'gre': [0, (2 ** 32) - 1],
                          'vxlan': [0, (2 ** 24) - 1]}
 DEFAULT_PROVIDER_TYPES = ['local', 'flat', 'vlan', 'gre', 'vxlan']
@@ -201,7 +203,7 @@ class CreateNetwork(forms.SelfHandlingForm):
     def _clean_physical_network(self, data):
         network_type = data.get('network_type')
         if 'physical_network' in self._errors and (
-                network_type in ['local', 'gre']):
+                network_type in ['local', 'gre', 'midonet', 'uplink']):
             # In this case the physical network is not required, so we can
             # ignore any errors.
             del self._errors['physical_network']
@@ -209,7 +211,7 @@ class CreateNetwork(forms.SelfHandlingForm):
     def _clean_segmentation_id(self, data):
         network_type = data.get('network_type')
         if 'segmentation_id' in self._errors:
-            if network_type in ['local', 'flat']:
+            if network_type in ['local', 'flat', 'midonet', 'uplink']:
                 # In this case the segmentation ID is not required, so we can
                 # ignore any errors.
                 del self._errors['segmentation_id']
