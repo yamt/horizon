@@ -29,11 +29,13 @@ LOG = logging.getLogger(__name__)
 PROVIDER_TYPES = [('local', _('Local')), ('flat', _('Flat')),
                   ('vlan', _('VLAN')), ('gre', _('GRE')),
                   ('vxlan', _('VXLAN')),
+                  ('geneve', _('Geneve')),
                   ('midonet', _('MidoNet')),
                   ('uplink', _('MidoNet Uplink'))]
 SEGMENTATION_ID_RANGE = {'vlan': [1, 4094], 'gre': [0, (2 ** 32) - 1],
-                         'vxlan': [0, (2 ** 24) - 1]}
-DEFAULT_PROVIDER_TYPES = ['local', 'flat', 'vlan', 'gre', 'vxlan']
+                         'vxlan': [0, (2 ** 24) - 1],
+                         'geneve': [1, (2 ** 24) - 1]}
+DEFAULT_PROVIDER_TYPES = ['local', 'flat', 'vlan', 'gre', 'vxlan', 'geneve']
 
 class CreateNetwork(forms.SelfHandlingForm):
     name = forms.CharField(max_length=255,
@@ -74,7 +76,8 @@ class CreateNetwork(forms.SelfHandlingForm):
             'data-switch-on': 'network_type',
             'data-network_type-vlan': _('Segmentation ID'),
             'data-network_type-gre': _('Segmentation ID'),
-            'data-network_type-vxlan': _('Segmentation ID')
+            'data-network_type-vxlan': _('Segmentation ID'),
+            'data-network_type-geneve': _('Segmentation ID')
         }))
     admin_state = forms.ChoiceField(choices=[(True, _('UP')),
                                              (False, _('DOWN'))],
@@ -111,7 +114,9 @@ class CreateNetwork(forms.SelfHandlingForm):
                 'gre': seg_id_range.get('gre',
                                         SEGMENTATION_ID_RANGE.get('gre')),
                 'vxlan': seg_id_range.get('vxlan',
-                                          SEGMENTATION_ID_RANGE.get('vxlan'))
+                                          SEGMENTATION_ID_RANGE.get('vxlan')),
+                'geneve': seg_id_range.get('vxlan',
+                                          SEGMENTATION_ID_RANGE.get('geneve'))
             }
             seg_id_help = (
                 _("For VLAN networks, the VLAN VID on the physical "
@@ -119,13 +124,16 @@ class CreateNetwork(forms.SelfHandlingForm):
                   "are %(vlan_min)s through %(vlan_max)s. For GRE or VXLAN "
                   "networks, the tunnel ID. Valid tunnel IDs for GRE networks "
                   "are %(gre_min)s through %(gre_max)s. For VXLAN networks, "
-                  "%(vxlan_min)s through %(vxlan_max)s.")
+                  "%(vxlan_min)s through %(vxlan_max)s. For Geneve networks, "
+                  "%(geneve_min)s through %(geneve_max)s.")
                 % {'vlan_min': self.seg_id_range['vlan'][0],
                    'vlan_max': self.seg_id_range['vlan'][1],
                    'gre_min': self.seg_id_range['gre'][0],
                    'gre_max': self.seg_id_range['gre'][1],
                    'vxlan_min': self.seg_id_range['vxlan'][0],
-                   'vxlan_max': self.seg_id_range['vxlan'][1]})
+                   'vxlan_max': self.seg_id_range['vxlan'][1],
+                   'geneve_min': self.seg_id_range['geneve'][0],
+                   'geneve_max': self.seg_id_range['geneve'][1]})
             self.fields['segmentation_id'].help_text = seg_id_help
 
             supported_provider_types = neutron_settings.get(
@@ -181,7 +189,7 @@ class CreateNetwork(forms.SelfHandlingForm):
                 if network_type in ['flat', 'vlan']:
                     params['provider:physical_network'] = (
                         data['physical_network'])
-                if network_type in ['vlan', 'gre', 'vxlan']:
+                if network_type in ['vlan', 'gre', 'vxlan', 'geneve']:
                     params['provider:segmentation_id'] = (
                         data['segmentation_id'])
             network = api.neutron.network_create(request, **params)
@@ -215,7 +223,7 @@ class CreateNetwork(forms.SelfHandlingForm):
                 # In this case the segmentation ID is not required, so we can
                 # ignore any errors.
                 del self._errors['segmentation_id']
-        elif network_type in ['vlan', 'gre', 'vxlan']:
+        elif network_type in ['vlan', 'gre', 'vxlan', 'geneve']:
             seg_id = data.get('segmentation_id')
             seg_id_range = {'min': self.seg_id_range[network_type][0],
                             'max': self.seg_id_range[network_type][1]}
@@ -228,6 +236,9 @@ class CreateNetwork(forms.SelfHandlingForm):
                             'through %(max)s.') % seg_id_range
                 elif network_type == 'vxlan':
                     msg = _('For VXLAN networks, valid tunnel IDs are %(min)s '
+                            'through %(max)s.') % seg_id_range
+                elif network_type == 'geneve':
+                    msg = _('For Geneve networks, valid VNIs are %(min)s '
                             'through %(max)s.') % seg_id_range
                 self._errors['segmentation_id'] = self.error_class([msg])
 

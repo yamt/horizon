@@ -835,7 +835,7 @@ Default::
             'enable_firewall': True,
             'enable_vpn': True,
             'profile_support': None,
-            'supported_provider_types': ['local', 'flat', 'vlan', 'gre', 'vxlan'],
+            'supported_provider_types': ['local', 'flat', 'vlan', 'gre', 'vxlan', 'geneve'],
             'supported_vnic_types': ["*"],
             'segmentation_id_range': {},
             'enable_fip_topology_check': True,
@@ -955,14 +955,14 @@ port profile support. ``cisco`` can be used with Neutron Cisco plugins.
 
 .. versionadded:: 2014.2(Juno)
 
-Default: ``['local', 'flat', 'vlan', 'gre', 'vxlan']``
+Default: ``['local', 'flat', 'vlan', 'gre', 'vxlan', 'geneve']``
 
 For use with the provider network extension. Use this to explicitly set which
 provider network types are supported. Only the network types in this list will
 be available to choose from when creating a network. Network types supported
 by Neutron depends on the configured plugin. In case of ML2 + openvswitch,
-they include local, flat, vlan, gre, and vxlan. You can specify ['*'] to mean
-all provider network types supported by Horizon.
+they include local, flat, vlan, gre, vxlan, and geneve. You can specify ['*']
+to mean all provider network types supported by Horizon.
 
 Example: ``['local', 'flat', 'gre']``
 Example: ``['*']``
