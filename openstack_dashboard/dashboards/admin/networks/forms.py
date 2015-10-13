@@ -31,7 +31,7 @@ PROVIDER_TYPES = [('local', _('Local')), ('flat', _('Flat')),
                   ('vxlan', _('VXLAN'))]
 SEGMENTATION_ID_RANGE = {'vlan': [1, 4094], 'gre': [0, (2 ** 32) - 1],
                          'vxlan': [0, (2 ** 24) - 1]}
-
+DEFAULT_PROVIDER_TYPES = ['local', 'flat', 'vlan', 'gre', 'vxlan']
 
 class CreateNetwork(forms.SelfHandlingForm):
     name = forms.CharField(max_length=255,
@@ -127,7 +127,7 @@ class CreateNetwork(forms.SelfHandlingForm):
             self.fields['segmentation_id'].help_text = seg_id_help
 
             supported_provider_types = neutron_settings.get(
-                'supported_provider_types', ['*'])
+                'supported_provider_types', DEFAULT_PROVIDER_TYPES)
             if supported_provider_types == ['*']:
                 network_type_choices = PROVIDER_TYPES
             else:
