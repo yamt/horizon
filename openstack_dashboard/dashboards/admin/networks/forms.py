@@ -30,9 +30,9 @@ LOG = logging.getLogger(__name__)
 PROVIDER_TYPES = {
     'local': (False, False),
     'flat': (True, False),
-    'vlan', (True, True),
-    'gre', (False, True),
-    'vxlan', (True, True),
+    'vlan': (True, True),
+    'gre': (False, True),
+    'vxlan': (True, True),
 }
 DISPLAY_NAMES = {
     'local': _('Local'),
